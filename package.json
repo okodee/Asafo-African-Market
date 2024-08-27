@@ -1,0 +1,46 @@
+{
+  "name": "next-amazona",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@mui/icons-material": "^5.0.0",
+    "@mui/material": "^5.16.7",
+    "@mui/styles": "^5.16.7",
+    "@paypal/react-paypal-js": "^7.8.3",
+    "@react-google-maps/api": "^2.19.3",
+    "axios": "^1.7.5",
+    "bcryptjs": "^2.4.3",
+    "chart.js": "^3.9.1",
+    "cloudinary": "^1.41.3",
+    "dotenv": "^16.4.5",
+    "js-cookie": "^2.2.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.8.0",
+    "mongoose": "^5.13.22",
+    "multer": "^1.4.4",
+    "next": "^14.2.6",
+    "next-connect": "^0.11.0",
+    "notistack": "^3.0.1",
+    "react": "^18.3.1",
+    "react-chartjs-2": "^3.3.0",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.53.0",
+    "react-material-ui-carousel": "^3.4.2",
+    "react-slick": "^0.30.2",
+    "slick-carousel": "^1.8.1",
+    "streamifier": "^0.1.1",
+    "swiper": "^11.1.10"
+  },
+  "devDependencies": {
+    "eslint": "7.29.0",
+    "eslint-config-next": "11.0.2"
+  }
+}
