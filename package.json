@@ -40,7 +40,7 @@
     "swiper": "^11.1.10"
   },
   "devDependencies": {
-    "eslint": "7.29.0",
+    "eslint": "^8.56.0",
     "eslint-config-next": "^14.2.7"
   }
 }
