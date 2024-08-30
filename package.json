@@ -16,6 +16,7 @@
     "@mui/styles": "^6.0.1",
     "@paypal/react-paypal-js": "^7.8.3",
     "@react-google-maps/api": "^2.19.3",
+    "@typescript-eslint/parser": "^8.3.0",
     "axios": "^1.7.5",
     "bcryptjs": "^2.4.3",
     "chart.js": "^3.9.1",
@@ -40,7 +41,7 @@
     "swiper": "^11.1.10"
   },
   "devDependencies": {
-    "eslint": "^8.56.0",
+    "eslint": "^9.9.1",
     "eslint-config-next": "^14.2.7"
   }
 }
