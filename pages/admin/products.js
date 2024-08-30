@@ -70,24 +70,23 @@ function AdminProdcuts() {
   useEffect(() => {
     if (!userInfo) {
       router.push('/login');
-    }
-    const fetchData = async () => {
-      try {
-        dispatch({ type: 'FETCH_REQUEST' });
-        const { data } = await axios.get(`/api/admin/products`, {
-          headers: { authorization: `Bearer ${userInfo.token}` },
-        });
-        dispatch({ type: 'FETCH_SUCCESS', payload: data });
-      } catch (err) {
-        dispatch({ type: 'FETCH_FAIL', payload: getError(err) });
-      }
-    };
-    if (successDelete) {
-      dispatch({ type: 'DELETE_RESET' });
     } else {
+      const fetchData = async () => {
+        try {
+          dispatch({ type: 'FETCH_REQUEST' });
+          const { data } = await axios.get(`/api/admin/products`, {
+            headers: { authorization: `Bearer ${userInfo.token}` },
+          });
+          dispatch({ type: 'FETCH_SUCCESS', payload: data });
+        } catch (err) {
+          dispatch({ type: 'FETCH_FAIL', payload: getError(err) });
+        }
+      };
       fetchData();
     }
-  }, [successDelete]);
+  }, [router, userInfo]);
+
+  [successDelete];
 
   const { enqueueSnackbar } = useSnackbar();
   const createHandler = async () => {

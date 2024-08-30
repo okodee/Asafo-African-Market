@@ -26,13 +26,14 @@ export default function Shipping() {
   useEffect(() => {
     if (!userInfo) {
       router.push('/login?redirect=/shipping');
+    } else {
+      setValue('fullName', shippingAddress.fullName || '');
+      setValue('address', shippingAddress.address || '');
+      setValue('city', shippingAddress.city || '');
+      setValue('postalCode', shippingAddress.postalCode || '');
+      setValue('country', shippingAddress.country || '');
     }
-    setValue('fullName', shippingAddress.fullName);
-    setValue('address', shippingAddress.address);
-    setValue('city', shippingAddress.city);
-    setValue('postalCode', shippingAddress.postalCode);
-    setValue('country', shippingAddress.country);
-  }, []);
+  }, [userInfo, router, setValue, shippingAddress]);
 
   const classes = useStyles();
   const submitHandler = ({ fullName, address, city, postalCode, country }) => {

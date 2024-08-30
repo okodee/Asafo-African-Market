@@ -91,7 +91,7 @@ function UserEdit({ params }) {
       };
       fetchData();
     }
-  }, []);
+  }, [router, userInfo, userId, setValue]);
 
   const submitHandler = async ({ name }) => {
     closeSnackbar();

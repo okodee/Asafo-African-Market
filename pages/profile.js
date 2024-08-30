@@ -36,11 +36,13 @@ function Profile() {
 
   useEffect(() => {
     if (!userInfo) {
-      return router.push('/login');
+      router.push('/login');
+    } else {
+      setValue('name', userInfo.name);
+      setValue('email', userInfo.email);
     }
-    setValue('name', userInfo.name);
-    setValue('email', userInfo.email);
-  }, []);
+  }, [userInfo, router, setValue]);
+
   const submitHandler = async ({ name, email, password, confirmPassword }) => {
     closeSnackbar();
     if (password !== confirmPassword) {

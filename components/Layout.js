@@ -81,28 +81,32 @@ export default function Layout({ title, description, children }) {
 
   const [categories, setCategories] = useState([]);
   const { enqueueSnackbar } = useSnackbar();
-
-  const fetchCategories = async () => {
-    try {
-      const { data } = await axios.get(`/api/products/categories`);
-      setCategories(data);
-    } catch (err) {
-      enqueueSnackbar(getError(err), { variant: 'error' });
-    }
-  };
-
   const [query, setQuery] = useState('');
+
   const queryChangeHandler = (e) => {
     setQuery(e.target.value);
   };
+
   const submitHandler = (e) => {
     e.preventDefault();
     router.push(`/search?query=${query}`);
   };
 
   useEffect(() => {
-    fetchCategories();
-  }, []);
+    const fetchCategories = async () => {
+      try {
+        const { data } = await axios.get(`/api/products/categories`);
+        setCategories(data);
+      } catch (err) {
+        enqueueSnackbar(getError(err), { variant: 'error' });
+      }
+    };
+
+    // Only fetch categories if they are not already available
+    if (categories.length === 0) {
+      fetchCategories();
+    }
+  }, [categories, enqueueSnackbar]); // Include enqueueSnackbar as a dependency
 
   const darkModeChangeHandler = () => {
     dispatch({ type: darkMode ? 'DARK_MODE_OFF' : 'DARK_MODE_ON' });

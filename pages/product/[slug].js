@@ -68,8 +68,16 @@ export default function ProductScreen(props) {
     }
   };
   useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        // Your logic to fetch reviews
+      } catch (err) {
+        // Handle error
+      }
+    };
+
     fetchReviews();
-  }, []);
+  }, [userInfo, router]);
 
   if (!product) {
     return <div>Product Not Found</div>;

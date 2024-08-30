@@ -1,12 +1,14 @@
+// pages/api/orders/[id]/deliver.js
 import nc from 'next-connect';
 import Order from '../../../../models/Order';
 import db from '../../../../utils/db';
-import onError from '../../../../utils/error';
+import { onError } from '../../../../utils/error'; // Named import
 import { isAuth } from '../../../../utils/auth';
 
 const handler = nc({
   onError,
 });
+
 handler.use(isAuth);
 handler.put(async (req, res) => {
   await db.connect();
