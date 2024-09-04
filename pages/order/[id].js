@@ -24,7 +24,7 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 import useStyles from '../../utils/styles';
 import { useSnackbar } from 'notistack';
-import { getError } from '../../utils/error';
+import { getError as onError } from '../../utils/error';
 import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
 
 function reducer(state, action) {

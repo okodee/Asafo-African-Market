@@ -1,5 +1,4 @@
 import db from './db';
-import { onError } from '../../../../utils/error';
 
 const getError = (err) =>
   err.response && err.response.data && err.response.data.message
