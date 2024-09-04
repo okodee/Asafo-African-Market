@@ -24,7 +24,7 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 import useStyles from '../../utils/styles';
 import { useSnackbar } from 'notistack';
-import { getError as onError } from '../../utils/error';
+import { getError } from '../../utils/error';
 import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
 
 function reducer(state, action) {
@@ -95,6 +95,7 @@ function Order({ params }) {
     if (!userInfo) {
       return router.push('/login');
     }
+
     const fetchOrder = async () => {
       try {
         dispatch({ type: 'FETCH_REQUEST' });
@@ -106,6 +107,7 @@ function Order({ params }) {
         dispatch({ type: 'FETCH_FAIL', payload: getError(err) });
       }
     };
+
     if (
       !order._id ||
       successPay ||
@@ -113,9 +115,11 @@ function Order({ params }) {
       (order._id && order._id !== orderId)
     ) {
       fetchOrder();
+
       if (successPay) {
         dispatch({ type: 'PAY_RESET' });
       }
+
       if (successDeliver) {
         dispatch({ type: 'DELIVER_RESET' });
       }
@@ -128,14 +132,25 @@ function Order({ params }) {
           type: 'resetOptions',
           value: {
             'client-id': clientId,
-            currency: 'USD',
+            currency: 'CAD',
           },
         });
         paypalDispatch({ type: 'setLoadingStatus', value: 'pending' });
       };
+
       loadPaypalScript();
     }
-  }, [order, successPay, successDeliver]);
+  }, [
+    order,
+    orderId,
+    successPay,
+    successDeliver,
+    userInfo,
+    router,
+    dispatch,
+    paypalDispatch,
+  ]);
+
   const { enqueueSnackbar } = useSnackbar();
 
   function createOrder(data, actions) {

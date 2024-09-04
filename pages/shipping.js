@@ -23,16 +23,19 @@ export default function Shipping() {
     cart: { shippingAddress },
   } = state;
   const { location } = shippingAddress;
+
   useEffect(() => {
     if (!userInfo) {
       router.push('/login?redirect=/shipping');
+      return; // Prevents further code execution if user is not logged in
     }
+
     setValue('fullName', shippingAddress.fullName);
     setValue('address', shippingAddress.address);
     setValue('city', shippingAddress.city);
     setValue('postalCode', shippingAddress.postalCode);
     setValue('country', shippingAddress.country);
-  }, []);
+  }, [userInfo, shippingAddress, router, setValue]); // Added dependencies
 
   const classes = useStyles();
   const submitHandler = ({ fullName, address, city, postalCode, country }) => {

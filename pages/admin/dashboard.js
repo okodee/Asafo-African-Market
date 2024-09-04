@@ -49,7 +49,9 @@ function AdminDashboard() {
   useEffect(() => {
     if (!userInfo) {
       router.push('/login');
+      return; // Early return if no userInfo
     }
+
     const fetchData = async () => {
       try {
         dispatch({ type: 'FETCH_REQUEST' });
@@ -61,8 +63,12 @@ function AdminDashboard() {
         dispatch({ type: 'FETCH_FAIL', payload: getError(err) });
       }
     };
+
     fetchData();
-  }, []);
+
+    // Add dependencies to ensure effect runs correctly when they change
+  }, [router, userInfo, dispatch]);
+
   return (
     <Layout title="Admin Dashboard">
       <Grid container spacing={1}>

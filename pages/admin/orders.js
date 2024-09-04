@@ -52,7 +52,9 @@ function AdminOrders() {
   useEffect(() => {
     if (!userInfo) {
       router.push('/login');
+      return;
     }
+
     const fetchData = async () => {
       try {
         dispatch({ type: 'FETCH_REQUEST' });
@@ -64,8 +66,10 @@ function AdminOrders() {
         dispatch({ type: 'FETCH_FAIL', payload: getError(err) });
       }
     };
+
     fetchData();
-  }, []);
+  }, [userInfo, router]);
+
   return (
     <Layout title="Orders">
       <Grid container spacing={1}>

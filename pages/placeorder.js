@@ -47,11 +47,11 @@ function PlaceOrder() {
   useEffect(() => {
     if (!paymentMethod) {
       router.push('/payment');
-    }
-    if (cartItems.length === 0) {
+    } else if (cartItems.length === 0) {
       router.push('/cart');
     }
-  }, []);
+  }, [paymentMethod, cartItems, router]);
+
   const { closeSnackbar, enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(false);
   const placeOrderHandler = async () => {

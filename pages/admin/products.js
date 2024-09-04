@@ -70,7 +70,9 @@ function AdminProdcuts() {
   useEffect(() => {
     if (!userInfo) {
       router.push('/login');
+      return;
     }
+
     const fetchData = async () => {
       try {
         dispatch({ type: 'FETCH_REQUEST' });
@@ -82,12 +84,13 @@ function AdminProdcuts() {
         dispatch({ type: 'FETCH_FAIL', payload: getError(err) });
       }
     };
+
     if (successDelete) {
       dispatch({ type: 'DELETE_RESET' });
     } else {
       fetchData();
     }
-  }, [successDelete]);
+  }, [userInfo, router, successDelete]);
 
   const { enqueueSnackbar } = useSnackbar();
   const createHandler = async () => {

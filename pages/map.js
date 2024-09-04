@@ -26,6 +26,7 @@ function Map() {
   const { userInfo } = state;
 
   const [googleApiKey, setGoogleApiKey] = useState('');
+
   useEffect(() => {
     const fetchGoogleApiKey = async () => {
       try {
@@ -38,8 +39,11 @@ function Map() {
         enqueueSnackbar(getError(err), { variant: 'error' });
       }
     };
-    fetchGoogleApiKey();
-  }, []);
+
+    if (userInfo) {
+      fetchGoogleApiKey();
+    }
+  }, [userInfo, getUserCurrentLocation, enqueueSnackbar]);
 
   const [center, setCenter] = useState(defaultLocation);
   const [location, setLocation] = useState(center);

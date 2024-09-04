@@ -69,7 +69,7 @@ export default function ProductScreen(props) {
   };
   useEffect(() => {
     fetchReviews();
-  }, []);
+  }, [productId, userId]); // Example dependencies
 
   if (!product) {
     return <div>Product Not Found</div>;
