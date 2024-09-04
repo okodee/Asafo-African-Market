@@ -32,8 +32,7 @@ export default function Payment() {
     } else {
       setPaymentMethod(Cookies.get('paymentMethod') || '');
     }
-  }, [shippingAddress, router]);
-
+  }, []);
   const submitHandler = (e) => {
     closeSnackbar();
     e.preventDefault();

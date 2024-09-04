@@ -2,13 +2,7 @@ import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import useStyles from '../utils/styles';
 import { Store } from '../utils/Store';
-import React, {
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-} from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useSnackbar } from 'notistack';
 import { CircularProgress } from '@mui/material';
@@ -32,11 +26,25 @@ function Map() {
   const { userInfo } = state;
 
   const [googleApiKey, setGoogleApiKey] = useState('');
+  useEffect(() => {
+    const fetchGoogleApiKey = async () => {
+      try {
+        const { data } = await axios('/api/keys/google', {
+          headers: { authorization: `Bearer ${userInfo.token}` },
+        });
+        setGoogleApiKey(data);
+        getUserCurrentLocation();
+      } catch (err) {
+        enqueueSnackbar(getError(err), { variant: 'error' });
+      }
+    };
+    fetchGoogleApiKey();
+  }, []);
+
   const [center, setCenter] = useState(defaultLocation);
   const [location, setLocation] = useState(center);
 
-  // Define getUserCurrentLocation inside useEffect or useCallback
-  const getUserCurrentLocation = useCallback(() => {
+  const getUserCurrentLocation = () => {
     if (!navigator.geolocation) {
       enqueueSnackbar('Geolocation is not supported by this browser', {
         variant: 'error',
@@ -53,25 +61,7 @@ function Map() {
         });
       });
     }
-  }, [enqueueSnackbar]);
-
-  useEffect(() => {
-    const fetchGoogleApiKey = async () => {
-      try {
-        const { data } = await axios('/api/keys/google', {
-          headers: { authorization: `Bearer ${userInfo.token}` },
-        });
-        setGoogleApiKey(data);
-        getUserCurrentLocation(); // Call the function after setting the API key
-      } catch (err) {
-        enqueueSnackbar(getError(err), { variant: 'error' });
-      }
-    };
-
-    if (userInfo) {
-      fetchGoogleApiKey();
-    }
-  }, [userInfo, getUserCurrentLocation, enqueueSnackbar]); // Adjust dependencies
+  };
 
   const mapRef = useRef(null);
   const placeRef = useRef(null);
@@ -80,7 +70,6 @@ function Map() {
   const onLoad = (map) => {
     mapRef.current = map;
   };
-
   const onIdle = () => {
     setLocation({
       lat: mapRef.current.center.lat(),
@@ -91,13 +80,11 @@ function Map() {
   const onLoadPlaces = (place) => {
     placeRef.current = place;
   };
-
   const onPlacesChanged = () => {
     const place = placeRef.current.getPlaces()[0].geometry.location;
     setCenter({ lat: place.lat(), lng: place.lng() });
     setLocation({ lat: place.lat(), lng: place.lng() });
   };
-
   const onConfirm = () => {
     const places = placeRef.current.getPlaces();
     if (places && places.length === 1) {
@@ -112,17 +99,15 @@ function Map() {
           googleAddressId: places[0].id,
         },
       });
-      enqueueSnackbar('Location selected successfully', {
+      enqueueSnackbar('location selected successfully', {
         variant: 'success',
       });
       router.push('/shipping');
     }
   };
-
   const onMarkerLoad = (marker) => {
     markerRef.current = marker;
   };
-
   return googleApiKey ? (
     <div className={classes.fullContainer}>
       <LoadScript libraries={libs} googleMapsApiKey={googleApiKey}>
@@ -139,13 +124,13 @@ function Map() {
             onPlacesChanged={onPlacesChanged}
           >
             <div className={classes.mapInputBox}>
-              <input type="text" placeholder="Enter your address" />
+              <input type="text" placeholder="Enter your address"></input>
               <button type="button" className="primary" onClick={onConfirm}>
                 Confirm
               </button>
             </div>
           </StandaloneSearchBox>
-          <Marker position={location} onLoad={onMarkerLoad} />
+          <Marker position={location} onLoad={onMarkerLoad}></Marker>
         </GoogleMap>
       </LoadScript>
     </div>

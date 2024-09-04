@@ -52,9 +52,7 @@ function OrderHistory() {
   useEffect(() => {
     if (!userInfo) {
       router.push('/login');
-      return;
     }
-
     const fetchOrders = async () => {
       try {
         dispatch({ type: 'FETCH_REQUEST' });
@@ -66,10 +64,8 @@ function OrderHistory() {
         dispatch({ type: 'FETCH_FAIL', payload: getError(err) });
       }
     };
-
     fetchOrders();
-  }, [userInfo, router]);
-
+  }, []);
   return (
     <Layout title="Order History">
       <Grid container spacing={1}>

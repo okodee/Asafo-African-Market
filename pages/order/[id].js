@@ -57,7 +57,7 @@ function reducer(state, action) {
         errorDeliver: '',
       };
     default:
-      return state;
+      state;
   }
 }
 
@@ -77,9 +77,6 @@ function Order({ params }) {
     order: {},
     error: '',
   });
-
-  const { enqueueSnackbar } = useSnackbar();
-
   const {
     shippingAddress,
     paymentMethod,
@@ -98,7 +95,6 @@ function Order({ params }) {
     if (!userInfo) {
       return router.push('/login');
     }
-
     const fetchOrder = async () => {
       try {
         dispatch({ type: 'FETCH_REQUEST' });
@@ -110,7 +106,6 @@ function Order({ params }) {
         dispatch({ type: 'FETCH_FAIL', payload: getError(err) });
       }
     };
-
     if (
       !order._id ||
       successPay ||
@@ -133,22 +128,15 @@ function Order({ params }) {
           type: 'resetOptions',
           value: {
             'client-id': clientId,
-            currency: 'CAD',
+            currency: 'USD',
           },
         });
         paypalDispatch({ type: 'setLoadingStatus', value: 'pending' });
       };
       loadPaypalScript();
     }
-  }, [
-    userInfo,
-    router,
-    orderId,
-    order,
-    successPay,
-    successDeliver,
-    paypalDispatch,
-  ]);
+  }, [order, successPay, successDeliver]);
+  const { enqueueSnackbar } = useSnackbar();
 
   function createOrder(data, actions) {
     return actions.order
@@ -163,7 +151,6 @@ function Order({ params }) {
         return orderID;
       });
   }
-
   function onApprove(data, actions) {
     return actions.order.capture().then(async function (details) {
       try {
@@ -290,7 +277,7 @@ function Order({ params }) {
                                     alt={item.name}
                                     width={50}
                                     height={50}
-                                  />
+                                  ></Image>
                                 </Link>
                               </NextLink>
                             </TableCell>
@@ -377,7 +364,7 @@ function Order({ params }) {
                           createOrder={createOrder}
                           onApprove={onApprove}
                           onError={onError}
-                        />
+                        ></PayPalButtons>
                       </div>
                     )}
                   </ListItem>

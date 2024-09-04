@@ -99,8 +99,7 @@ function ProductEdit({ params }) {
       };
       fetchData();
     }
-  }, [productId, setValue, userInfo, router]);
-
+  }, []);
   const uploadHandler = async (e, imageField = 'image') => {
     const file = e.target.files[0];
     const bodyFormData = new FormData();
