@@ -28,6 +28,14 @@ function Map() {
   const [googleApiKey, setGoogleApiKey] = useState('');
 
   useEffect(() => {
+    const getUserCurrentLocation = async () => {
+      try {
+        // Function logic here
+      } catch (err) {
+        enqueueSnackbar(getError(err), { variant: 'error' });
+      }
+    };
+
     const fetchGoogleApiKey = async () => {
       try {
         const { data } = await axios('/api/keys/google', {
@@ -40,10 +48,8 @@ function Map() {
       }
     };
 
-    if (userInfo) {
-      fetchGoogleApiKey();
-    }
-  }, [userInfo, getUserCurrentLocation, enqueueSnackbar]);
+    fetchGoogleApiKey();
+  }, [userInfo, enqueueSnackbar, getError]); // Include necessary dependencies
 
   const [center, setCenter] = useState(defaultLocation);
   const [location, setLocation] = useState(center);

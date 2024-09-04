@@ -63,11 +63,13 @@ function AdminUsers() {
   useEffect(() => {
     if (!userInfo) {
       router.push('/login');
+      return; // Prevent further execution if userInfo is not available
     }
+
     const fetchData = async () => {
       try {
         dispatch({ type: 'FETCH_REQUEST' });
-        const { data } = await axios.get(`/api/admin/users`, {
+        const { data } = await axios.get('/api/admin/users', {
           headers: { authorization: `Bearer ${userInfo.token}` },
         });
         dispatch({ type: 'FETCH_SUCCESS', payload: data });
@@ -75,12 +77,13 @@ function AdminUsers() {
         dispatch({ type: 'FETCH_FAIL', payload: getError(err) });
       }
     };
+
     if (successDelete) {
       dispatch({ type: 'DELETE_RESET' });
     } else {
       fetchData();
     }
-  }, [successDelete]);
+  }, [userInfo, successDelete, router, dispatch]);
 
   const { enqueueSnackbar } = useSnackbar();
 
