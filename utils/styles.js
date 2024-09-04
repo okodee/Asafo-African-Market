@@ -1,4 +1,4 @@
-import { makeStyles } from '@mui/styles';
+import { makeStyles } from '@mui/styles'; // Correct
 
 const useStyles = makeStyles((theme) => ({
   navbar: {
@@ -60,10 +60,10 @@ const useStyles = makeStyles((theme) => ({
   mt1: { marginTop: '1rem' },
   // search
   searchSection: {
-    display: 'none',
-    [theme.breakpoints.up('md')]: {
-      display: 'flex',
-    },
+    //display: 'none',
+    //[theme.breakpoints.up('md')]: {
+    //display: 'flex',
+    //},
   },
   searchForm: {
     border: '1px solid #ffffff',

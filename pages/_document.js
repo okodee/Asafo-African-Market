@@ -1,15 +1,24 @@
-import { ServerStyleSheets } from '@mui/styles';
-import Document, { Head, Html, Main, NextScript } from 'next/document';
+// pages/_document.js
+import Document, { Html, Head, Main, NextScript } from 'next/document';
+import { CacheProvider } from '@emotion/react';
+import createCache from '@emotion/cache';
+import { extractCritical } from '@emotion/server';
 import React from 'react';
+
+// Create an Emotion cache
+const cache = createCache({ key: 'css', prepend: true });
 
 export default class MyDocument extends Document {
   render() {
+    const { css, ids } = this.props;
+
     return (
-      <Html lang="en">
+      <Html>
         <Head>
-          <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
+          {/* Include any other tags you want here */}
+          <style
+            data-emotion-css={Array.isArray(ids) ? ids.join(' ') : ''}
+            dangerouslySetInnerHTML={{ __html: css || '' }}
           />
         </Head>
         <body>
@@ -22,19 +31,28 @@ export default class MyDocument extends Document {
 }
 
 MyDocument.getInitialProps = async (ctx) => {
-  const sheets = new ServerStyleSheets();
   const originalRenderPage = ctx.renderPage;
-  ctx.renderPage = () => {
-    return originalRenderPage({
-      enhanceApp: (App) => (props) => sheets.collect(<App {...props} />),
+
+  // Render page and collect styles
+  ctx.renderPage = () =>
+    originalRenderPage({
+      enhanceApp: (App) => (props) =>
+        (
+          <CacheProvider value={cache}>
+            <App {...props} />
+          </CacheProvider>
+        ),
     });
-  };
+
   const initialProps = await Document.getInitialProps(ctx);
+
+  // Extract critical CSS
+  const page = ctx.renderPage();
+  const { css, ids } = extractCritical(page.html);
+
   return {
     ...initialProps,
-    styles: [
-      ...React.Children.toArray(initialProps.styles),
-      sheets.getStyleElement(),
-    ],
+    css,
+    ids,
   };
 };
