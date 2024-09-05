@@ -19,7 +19,7 @@ import {
   Button,
   ListItemText,
 } from '@mui/material';
-import { getError } from '../utils/error';
+import { getError, onError as importedOnError } from '../utils/error'; // Adjust path as needed
 import { Store } from '../utils/Store';
 import Layout from '../components/Layout';
 import useStyles from '../utils/styles';

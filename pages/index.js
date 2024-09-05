@@ -10,6 +10,7 @@ import { useContext } from 'react';
 import { Store } from '../utils/Store';
 import ProductItem from '../components/ProductItem';
 import Carousel from 'react-material-ui-carousel';
+import React from 'react';
 
 import useStyles from '../utils/styles';
 
