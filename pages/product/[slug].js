@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import NextLink from 'next/link';
 import Image from 'next/image';
 import {
@@ -36,19 +36,36 @@ export default function ProductScreen(props) {
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const productId = product._id;
+  const userId = userInfo?._id;
+
+  const fetchReviews = useCallback(async () => {
+    if (!productId || !userId) return;
+    try {
+      const { data } = await axios.get(`/api/products/${productId}/reviews`, {
+        headers: { authorization: `Bearer ${userInfo.token}` },
+      });
+      setReviews(data);
+    } catch (err) {
+      enqueueSnackbar(getError(err), { variant: 'error' });
+    }
+  }, [productId, userId, userInfo.token, enqueueSnackbar]);
+
+  useEffect(() => {
+    if (!userInfo) {
+      router.push('/login');
+    }
+    fetchReviews();
+  }, [fetchReviews, userInfo, router]);
+
   const submitHandler = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
       await axios.post(
-        `/api/products/${product._id}/reviews`,
-        {
-          rating,
-          comment,
-        },
-        {
-          headers: { authorization: `Bearer ${userInfo.token}` },
-        }
+        `/api/products/${productId}/reviews`,
+        { rating, comment },
+        { headers: { authorization: `Bearer ${userInfo.token}` } }
       );
       setLoading(false);
       enqueueSnackbar('Review submitted successfully', { variant: 'success' });
@@ -59,34 +76,6 @@ export default function ProductScreen(props) {
     }
   };
 
-  const fetchReviews = useCallback(async () => {
-    if (!productId || !userId) return;
-    try {
-      const { data } = await axios.get(`/api/products/${productId}/reviews`, {
-        headers: { authorization: `Bearer ${userInfo.token}` },
-      });
-      dispatch({ type: 'FETCH_REVIEWS_SUCCESS', payload: data });
-    } catch (err) {
-      dispatch({ type: 'FETCH_REVIEWS_FAIL', payload: getError(err) });
-    }
-  }, [productId, userId, userInfo.token, dispatch]);
-
-  useEffect(() => {
-    fetchReviews();
-  }, [fetchReviews]); // Include fetchReviews in the dependency array
-
-  if (!userInfo) {
-    router.push('/login');
-    return <CircularProgress />;
-  }
-
-  useEffect(() => {
-    fetchReviews();
-  }, [fetchReviews]); // Example dependencies
-
-  if (!product) {
-    return <div>Product Not Found</div>;
-  }
   const addToCartHandler = async () => {
     const existItem = state.cart.cartItems.find((x) => x._id === product._id);
     const quantity = existItem ? existItem.quantity + 1 : 1;
@@ -98,6 +87,10 @@ export default function ProductScreen(props) {
     dispatch({ type: 'CART_ADD_ITEM', payload: { ...product, quantity } });
     router.push('/cart');
   };
+
+  if (!product) {
+    return <div>Product Not Found</div>;
+  }
 
   return (
     <Layout title={product.name} description={product.description}>
@@ -116,7 +109,7 @@ export default function ProductScreen(props) {
             width={640}
             height={640}
             layout="responsive"
-          ></Image>
+          />
         </Grid>
         <Grid item md={3} xs={12}>
           <List>
@@ -132,13 +125,13 @@ export default function ProductScreen(props) {
               <Typography>Brand: {product.brand}</Typography>
             </ListItem>
             <ListItem>
-              <Rating value={product.rating} readOnly></Rating>
+              <Rating value={product.rating} readOnly />
               <Link href="#reviews">
                 <Typography>({product.numReviews} reviews)</Typography>
               </Link>
             </ListItem>
             <ListItem>
-              <Typography> Description: {product.description}</Typography>
+              <Typography>Description: {product.description}</Typography>
             </ListItem>
           </List>
         </Grid>
@@ -187,7 +180,7 @@ export default function ProductScreen(props) {
             Customer Reviews
           </Typography>
         </ListItem>
-        {reviews.length === 0 && <ListItem>No review</ListItem>}
+        {reviews.length === 0 && <ListItem>No reviews</ListItem>}
         {reviews.map((review) => (
           <ListItem key={review._id}>
             <Grid container>
@@ -198,7 +191,7 @@ export default function ProductScreen(props) {
                 <Typography>{review.createdAt.substring(0, 10)}</Typography>
               </Grid>
               <Grid item>
-                <Rating value={review.rating} readOnly></Rating>
+                <Rating value={review.rating} readOnly />
                 <Typography>{review.comment}</Typography>
               </Grid>
             </Grid>
@@ -226,7 +219,7 @@ export default function ProductScreen(props) {
                   <Rating
                     name="simple-controlled"
                     value={rating}
-                    onChange={(e) => setRating(e.target.value)}
+                    onChange={(e, newValue) => setRating(newValue)}
                   />
                 </ListItem>
                 <ListItem>
@@ -238,8 +231,7 @@ export default function ProductScreen(props) {
                   >
                     Submit
                   </Button>
-
-                  {loading && <CircularProgress></CircularProgress>}
+                  {loading && <CircularProgress />}
                 </ListItem>
               </List>
             </form>

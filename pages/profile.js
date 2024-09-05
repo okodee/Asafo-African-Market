@@ -34,6 +34,7 @@ function Profile() {
   const classes = useStyles();
   const { userInfo } = state;
 
+  // Handle redirection and form values initialization
   useEffect(() => {
     if (!userInfo) {
       router.push('/login');
@@ -41,8 +42,9 @@ function Profile() {
       setValue('name', userInfo.name);
       setValue('email', userInfo.email);
     }
-  }, [userInfo, router]);
+  }, [userInfo, router, setValue]);
 
+  // Submit handler for form submission
   const submitHandler = async ({ name, email, password, confirmPassword }) => {
     closeSnackbar();
     if (password !== confirmPassword) {
@@ -52,21 +54,17 @@ function Profile() {
     try {
       const { data } = await axios.put(
         '/api/users/profile',
-        {
-          name,
-          email,
-          password,
-        },
+        { name, email, password },
         { headers: { authorization: `Bearer ${userInfo.token}` } }
       );
       dispatch({ type: 'USER_LOGIN', payload: data });
       Cookies.set('userInfo', data);
-
       enqueueSnackbar('Profile updated successfully', { variant: 'success' });
     } catch (err) {
       enqueueSnackbar(getError(err), { variant: 'error' });
     }
   };
+
   return (
     <Layout title="Profile">
       <Grid container spacing={1}>
@@ -105,17 +103,13 @@ function Profile() {
                         name="name"
                         control={control}
                         defaultValue=""
-                        rules={{
-                          required: true,
-                          minLength: 2,
-                        }}
+                        rules={{ required: true, minLength: 2 }}
                         render={({ field }) => (
                           <TextField
                             variant="outlined"
                             fullWidth
                             id="name"
                             label="Name"
-                            inputProps={{ type: 'name' }}
                             error={Boolean(errors.name)}
                             helperText={
                               errors.name
@@ -125,9 +119,9 @@ function Profile() {
                                 : ''
                             }
                             {...field}
-                          ></TextField>
+                          />
                         )}
-                      ></Controller>
+                      />
                     </ListItem>
                     <ListItem>
                       <Controller
@@ -144,7 +138,6 @@ function Profile() {
                             fullWidth
                             id="email"
                             label="Email"
-                            inputProps={{ type: 'email' }}
                             error={Boolean(errors.email)}
                             helperText={
                               errors.email
@@ -154,9 +147,9 @@ function Profile() {
                                 : ''
                             }
                             {...field}
-                          ></TextField>
+                          />
                         )}
-                      ></Controller>
+                      />
                     </ListItem>
                     <ListItem>
                       <Controller
@@ -175,7 +168,7 @@ function Profile() {
                             fullWidth
                             id="password"
                             label="Password"
-                            inputProps={{ type: 'password' }}
+                            type="password"
                             error={Boolean(errors.password)}
                             helperText={
                               errors.password
@@ -183,9 +176,9 @@ function Profile() {
                                 : ''
                             }
                             {...field}
-                          ></TextField>
+                          />
                         )}
-                      ></Controller>
+                      />
                     </ListItem>
                     <ListItem>
                       <Controller
@@ -204,17 +197,17 @@ function Profile() {
                             fullWidth
                             id="confirmPassword"
                             label="Confirm Password"
-                            inputProps={{ type: 'password' }}
+                            type="password"
                             error={Boolean(errors.confirmPassword)}
                             helperText={
-                              errors.password
+                              errors.confirmPassword
                                 ? 'Confirm Password length is more than 5'
                                 : ''
                             }
                             {...field}
-                          ></TextField>
+                          />
                         )}
-                      ></Controller>
+                      />
                     </ListItem>
                     <ListItem>
                       <Button
