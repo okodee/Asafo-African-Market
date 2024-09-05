@@ -60,7 +60,7 @@ const useStyles = makeStyles((theme) => ({
   mt1: { marginTop: '1rem' },
   // search
   searchSection: {
-    //display: 'none',
+    // display: 'none',
     //[theme.breakpoints.up('md')]: {
     //display: 'flex',
     //},

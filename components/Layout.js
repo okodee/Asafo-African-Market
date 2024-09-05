@@ -101,8 +101,21 @@ export default function Layout({ title, description, children }) {
   };
 
   useEffect(() => {
-    fetchCategories();
-  }, [userId, authToken]); // Example dependencies
+    if (userInfo?.authToken) {
+      const fetchCategories = async () => {
+        try {
+          const { data } = await axios.get('/api/categories', {
+            headers: { authorization: `Bearer ${userInfo.authToken}` },
+          });
+          dispatch({ type: 'FETCH_CATEGORIES_SUCCESS', payload: data });
+        } catch (err) {
+          console.error(err);
+          // Handle error appropriately
+        }
+      };
+      fetchCategories();
+    }
+  }, [userInfo?.authToken, dispatch]); // Example dependencies
 
   const darkModeChangeHandler = () => {
     dispatch({ type: darkMode ? 'DARK_MODE_OFF' : 'DARK_MODE_ON' });

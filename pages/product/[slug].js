@@ -59,17 +59,26 @@ export default function ProductScreen(props) {
     }
   };
 
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
+    if (!productId || !userId) return;
     try {
-      const { data } = await axios.get(`/api/products/${product._id}/reviews`);
-      setReviews(data);
+      const { data } = await axios.get(`/api/products/${productId}/reviews`, {
+        headers: { authorization: `Bearer ${userInfo.token}` },
+      });
+      dispatch({ type: 'FETCH_REVIEWS_SUCCESS', payload: data });
     } catch (err) {
-      enqueueSnackbar(getError(err), { variant: 'error' });
+      dispatch({ type: 'FETCH_REVIEWS_FAIL', payload: getError(err) });
     }
-  };
+  }, [productId, userId, userInfo.token, dispatch]);
+
   useEffect(() => {
     fetchReviews();
-  }, [productId, userId]);
+  }, [fetchReviews]); // Include fetchReviews in the dependency array
+
+  if (!userInfo) {
+    router.push('/login');
+    return <CircularProgress />;
+  }
 
   useEffect(() => {
     fetchReviews();
