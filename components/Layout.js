@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Head from 'next/head';
 import NextLink from 'next/link';
 import {
@@ -31,15 +31,18 @@ import useStyles from '../utils/styles';
 import { Store } from '../utils/Store';
 import { getError } from '../utils/error';
 import Cookies from 'js-cookie';
-import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import axios from 'axios';
-import { useEffect } from 'react';
 
 export async function getServerSideProps() {
-  const { data: categories } = await axios.get('/api/products/categories');
-  return { props: { categories } };
+  try {
+    const { data: categories } = await axios.get('/api/products/categories');
+    return { props: { categories } };
+  } catch (err) {
+    console.error(getError(err));
+    return { props: { categories: [] } }; // Return empty categories if there's an error
+  }
 }
 
 export default function Layout({ title, description, children }) {
@@ -60,7 +63,7 @@ export default function Layout({ title, description, children }) {
       },
     },
     palette: {
-      type: darkMode ? 'dark' : 'light',
+      mode: darkMode ? 'dark' : 'light', // Use 'mode' for theme palette
       primary: {
         main: '#f0c000',
       },
@@ -71,30 +74,17 @@ export default function Layout({ title, description, children }) {
   });
   const classes = useStyles();
 
-  const [sidbarVisible, setSidebarVisible] = useState(false);
-  const sidebarOpenHandler = () => {
-    setSidebarVisible(true);
-  };
-  const sidebarCloseHandler = () => {
-    setSidebarVisible(false);
-  };
-
+  const [sidebarVisible, setSidebarVisible] = useState(false);
   const [categories, setCategories] = useState([]);
-  const { enqueueSnackbar } = useSnackbar();
-
-  const fetchCategories = async () => {
-    try {
-      const { data } = await axios.get(`/api/products/categories`);
-      setCategories(data);
-    } catch (err) {
-      enqueueSnackbar(getError(err), { variant: 'error' });
-    }
-  };
-
   const [query, setQuery] = useState('');
-  const queryChangeHandler = (e) => {
-    setQuery(e.target.value);
-  };
+  const [anchorEl, setAnchorEl] = useState(null);
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
+  const sidebarOpenHandler = () => setSidebarVisible(true);
+  const sidebarCloseHandler = () => setSidebarVisible(false);
+
+  const queryChangeHandler = (e) => setQuery(e.target.value);
+
   const submitHandler = (e) => {
     e.preventDefault();
     router.push(`/search?query=${query}`);
@@ -104,48 +94,46 @@ export default function Layout({ title, description, children }) {
     if (userInfo?.authToken) {
       const fetchCategories = async () => {
         try {
-          const { data } = await axios.get('/api/categories', {
+          const { data } = await axios.get('/api/products/categories', {
             headers: { authorization: `Bearer ${userInfo.authToken}` },
           });
-          dispatch({ type: 'FETCH_CATEGORIES_SUCCESS', payload: data });
+          setCategories(data);
         } catch (err) {
-          console.error(err);
-          // Handle error appropriately
+          enqueueSnackbar(getError(err), { variant: 'error' });
         }
       };
       fetchCategories();
     }
-  }, [userInfo?.authToken, dispatch]); // Example dependencies
+  }, [userInfo?.authToken, enqueueSnackbar]);
 
   const darkModeChangeHandler = () => {
     dispatch({ type: darkMode ? 'DARK_MODE_OFF' : 'DARK_MODE_ON' });
-    const newDarkMode = !darkMode;
-    Cookies.set('darkMode', newDarkMode ? 'ON' : 'OFF');
+    Cookies.set('darkMode', darkMode ? 'OFF' : 'ON');
   };
-  const [anchorEl, setAnchorEl] = useState(null);
-  const loginClickHandler = (e) => {
-    setAnchorEl(e.currentTarget);
-  };
+
+  const loginClickHandler = (e) => setAnchorEl(e.currentTarget);
   const loginMenuCloseHandler = (e, redirect) => {
     setAnchorEl(null);
     if (redirect) {
       router.push(redirect);
     }
   };
+
   const logoutClickHandler = () => {
     setAnchorEl(null);
     dispatch({ type: 'USER_LOGOUT' });
     Cookies.remove('userInfo');
     Cookies.remove('cartItems');
-    Cookies.remove('shippinhAddress');
+    Cookies.remove('shippingAddress');
     Cookies.remove('paymentMethod');
     router.push('/');
   };
+
   return (
     <div>
       <Head>
-        <title>{title ? `${title} - asafomarket` : 'asafomarket'}</title>
-        {description && <meta name="description" content={description}></meta>}
+        <title>{title ? `${title} - Asafo Market` : 'Asafo Market'}</title>
+        {description && <meta name="description" content={description} />}
       </Head>
       <ThemeProvider theme={theme}>
         <CssBaseline />
@@ -170,7 +158,7 @@ export default function Layout({ title, description, children }) {
             </Box>
             <Drawer
               anchor="left"
-              open={sidbarVisible}
+              open={sidebarVisible}
               onClose={sidebarCloseHandler}
             >
               <List>
@@ -201,7 +189,7 @@ export default function Layout({ title, description, children }) {
                       component="a"
                       onClick={sidebarCloseHandler}
                     >
-                      <ListItemText primary={category}></ListItemText>
+                      <ListItemText primary={category} />
                     </ListItem>
                   </NextLink>
                 ))}
@@ -214,6 +202,7 @@ export default function Layout({ title, description, children }) {
                   name="query"
                   className={classes.searchInput}
                   placeholder="Search products"
+                  value={query}
                   onChange={queryChangeHandler}
                 />
                 <IconButton
@@ -226,10 +215,7 @@ export default function Layout({ title, description, children }) {
               </form>
             </div>
             <div>
-              <Switch
-                checked={darkMode}
-                onChange={darkModeChangeHandler}
-              ></Switch>
+              <Switch checked={darkMode} onChange={darkModeChangeHandler} />
               <NextLink href="/cart" passHref>
                 <Link>
                   <Typography component="span">
@@ -273,7 +259,7 @@ export default function Layout({ title, description, children }) {
                         loginMenuCloseHandler(e, '/order-history')
                       }
                     >
-                      Order Hisotry
+                      Order History
                     </MenuItem>
                     {userInfo.isAdmin && (
                       <MenuItem
@@ -299,7 +285,7 @@ export default function Layout({ title, description, children }) {
         </AppBar>
         <Container className={classes.main}>{children}</Container>
         <footer className={classes.footer}>
-          <Typography>All rights reserved.Asafomarket.</Typography>
+          <Typography>All rights reserved. Asafo Market.</Typography>
         </footer>
       </ThemeProvider>
     </div>
