@@ -22,7 +22,7 @@ import {
 import { getError } from '../../utils/error';
 import { Store } from '../../utils/Store';
 import Layout from '../../components/Layout';
-import useStyles from '../../utils/styles';
+import classes from '../../utils/classes';
 import { useSnackbar } from 'notistack';
 
 function reducer(state, action) {
@@ -50,7 +50,7 @@ function reducer(state, action) {
 function AdminUsers() {
   const { state } = useContext(Store);
   const router = useRouter();
-  const classes = useStyles();
+
   const { userInfo } = state;
 
   const [{ loading, error, users, successDelete, loadingDelete }, dispatch] =
@@ -63,13 +63,11 @@ function AdminUsers() {
   useEffect(() => {
     if (!userInfo) {
       router.push('/login');
-      return; // Prevent further execution if userInfo is not available
     }
-
     const fetchData = async () => {
       try {
         dispatch({ type: 'FETCH_REQUEST' });
-        const { data } = await axios.get('/api/admin/users', {
+        const { data } = await axios.get(`/api/admin/users`, {
           headers: { authorization: `Bearer ${userInfo.token}` },
         });
         dispatch({ type: 'FETCH_SUCCESS', payload: data });
@@ -77,13 +75,12 @@ function AdminUsers() {
         dispatch({ type: 'FETCH_FAIL', payload: getError(err) });
       }
     };
-
     if (successDelete) {
       dispatch({ type: 'DELETE_RESET' });
     } else {
       fetchData();
     }
-  }, [userInfo, successDelete, router, dispatch]);
+  }, [successDelete]);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -107,7 +104,7 @@ function AdminUsers() {
     <Layout title="Users">
       <Grid container spacing={1}>
         <Grid item md={3} xs={12}>
-          <Card className={classes.section}>
+          <Card sx={classes.section}>
             <List>
               <NextLink href="/admin/dashboard" passHref>
                 <ListItem button component="a">
@@ -133,7 +130,7 @@ function AdminUsers() {
           </Card>
         </Grid>
         <Grid item md={9} xs={12}>
-          <Card className={classes.section}>
+          <Card sx={classes.section}>
             <List>
               <ListItem>
                 <Typography component="h1" variant="h1">
@@ -146,7 +143,7 @@ function AdminUsers() {
                 {loading ? (
                   <CircularProgress />
                 ) : error ? (
-                  <Typography className={classes.error}>{error}</Typography>
+                  <Typography sx={classes.error}>{error}</Typography>
                 ) : (
                   <TableContainer>
                     <Table>

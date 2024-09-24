@@ -3,8 +3,8 @@ import { useRouter } from 'next/router';
 import React, { useContext, useEffect, useState } from 'react';
 import { Store } from '../utils/Store';
 import Layout from '../components/Layout';
+import Form from '../components/Form';
 import CheckoutWizard from '../components/CheckoutWizard';
-import useStyles from '../utils/styles';
 import {
   Button,
   FormControl,
@@ -19,22 +19,19 @@ import { useSnackbar } from 'notistack';
 
 export default function Payment() {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
-  const classes = useStyles();
   const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState('');
   const { state, dispatch } = useContext(Store);
   const {
     cart: { shippingAddress },
   } = state;
-
   useEffect(() => {
     if (!shippingAddress.address) {
       router.push('/shipping');
     } else {
       setPaymentMethod(Cookies.get('paymentMethod') || '');
     }
-  }, [router, shippingAddress.address]);
-
+  }, []);
   const submitHandler = (e) => {
     closeSnackbar();
     e.preventDefault();
@@ -46,11 +43,10 @@ export default function Payment() {
       router.push('/placeorder');
     }
   };
-
   return (
     <Layout title="Payment Method">
       <CheckoutWizard activeStep={2}></CheckoutWizard>
-      <form className={classes.form} onSubmit={submitHandler}>
+      <Form onSubmit={submitHandler}>
         <Typography component="h1" variant="h1">
           Payment Method
         </Typography>
@@ -91,13 +87,14 @@ export default function Payment() {
               fullWidth
               type="button"
               variant="contained"
+              color="secondary"
               onClick={() => router.push('/shipping')}
             >
               Back
             </Button>
           </ListItem>
         </List>
-      </form>
+      </Form>
     </Layout>
   );
 }

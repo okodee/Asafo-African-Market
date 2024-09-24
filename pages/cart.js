@@ -20,6 +20,7 @@ import {
   Card,
   List,
   ListItem,
+  Box,
 } from '@mui/material';
 import axios from 'axios';
 import { useRouter } from 'next/router';
@@ -30,7 +31,6 @@ function CartScreen() {
   const {
     cart: { cartItems },
   } = state;
-
   const updateCartHandler = async (item, quantity) => {
     const { data } = await axios.get(`/api/products/${item._id}`);
     if (data.countInStock < quantity) {
@@ -39,27 +39,24 @@ function CartScreen() {
     }
     dispatch({ type: 'CART_ADD_ITEM', payload: { ...item, quantity } });
   };
-
   const removeItemHandler = (item) => {
     dispatch({ type: 'CART_REMOVE_ITEM', payload: item });
   };
-
   const checkoutHandler = () => {
     router.push('/shipping');
   };
-
   return (
     <Layout title="Shopping Cart">
       <Typography component="h1" variant="h1">
         Shopping Cart
       </Typography>
       {cartItems.length === 0 ? (
-        <div>
+        <Box>
           Cart is empty.{' '}
           <NextLink href="/" passHref>
             <Link>Go shopping</Link>
           </NextLink>
-        </div>
+        </Box>
       ) : (
         <Grid container spacing={1}>
           <Grid item md={9} xs={12}>
@@ -85,10 +82,11 @@ function CartScreen() {
                               alt={item.name}
                               width={50}
                               height={50}
-                            />
+                            ></Image>
                           </Link>
                         </NextLink>
                       </TableCell>
+
                       <TableCell>
                         <NextLink href={`/product/${item.slug}`} passHref>
                           <Link>

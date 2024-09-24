@@ -14,9 +14,10 @@ import {
   TextField,
 } from '@mui/material';
 import { getError } from '../utils/error';
+import Form from '../components/Form';
 import { Store } from '../utils/Store';
 import Layout from '../components/Layout';
-import useStyles from '../utils/styles';
+import classes from '../utils/classes';
 import { Controller, useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 import Cookies from 'js-cookie';
@@ -31,20 +32,15 @@ function Profile() {
   } = useForm();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const router = useRouter();
-  const classes = useStyles();
   const { userInfo } = state;
 
-  // Handle redirection and form values initialization
   useEffect(() => {
     if (!userInfo) {
-      router.push('/login');
-    } else {
-      setValue('name', userInfo.name);
-      setValue('email', userInfo.email);
+      return router.push('/login');
     }
-  }, [userInfo, router, setValue]);
-
-  // Submit handler for form submission
+    setValue('name', userInfo.name);
+    setValue('email', userInfo.email);
+  }, []);
   const submitHandler = async ({ name, email, password, confirmPassword }) => {
     closeSnackbar();
     if (password !== confirmPassword) {
@@ -54,22 +50,26 @@ function Profile() {
     try {
       const { data } = await axios.put(
         '/api/users/profile',
-        { name, email, password },
+        {
+          name,
+          email,
+          password,
+        },
         { headers: { authorization: `Bearer ${userInfo.token}` } }
       );
       dispatch({ type: 'USER_LOGIN', payload: data });
-      Cookies.set('userInfo', data);
+      Cookies.set('userInfo', JSON.stringify(data));
+
       enqueueSnackbar('Profile updated successfully', { variant: 'success' });
     } catch (err) {
       enqueueSnackbar(getError(err), { variant: 'error' });
     }
   };
-
   return (
     <Layout title="Profile">
       <Grid container spacing={1}>
         <Grid item md={3} xs={12}>
-          <Card className={classes.section}>
+          <Card sx={classes.section}>
             <List>
               <NextLink href="/profile" passHref>
                 <ListItem selected button component="a">
@@ -85,7 +85,7 @@ function Profile() {
           </Card>
         </Grid>
         <Grid item md={9} xs={12}>
-          <Card className={classes.section}>
+          <Card sx={classes.section}>
             <List>
               <ListItem>
                 <Typography component="h1" variant="h1">
@@ -93,23 +93,24 @@ function Profile() {
                 </Typography>
               </ListItem>
               <ListItem>
-                <form
-                  onSubmit={handleSubmit(submitHandler)}
-                  className={classes.form}
-                >
+                <Form onSubmit={handleSubmit(submitHandler)}>
                   <List>
                     <ListItem>
                       <Controller
                         name="name"
                         control={control}
                         defaultValue=""
-                        rules={{ required: true, minLength: 2 }}
+                        rules={{
+                          required: true,
+                          minLength: 2,
+                        }}
                         render={({ field }) => (
                           <TextField
                             variant="outlined"
                             fullWidth
                             id="name"
                             label="Name"
+                            inputProps={{ type: 'name' }}
                             error={Boolean(errors.name)}
                             helperText={
                               errors.name
@@ -119,9 +120,9 @@ function Profile() {
                                 : ''
                             }
                             {...field}
-                          />
+                          ></TextField>
                         )}
-                      />
+                      ></Controller>
                     </ListItem>
                     <ListItem>
                       <Controller
@@ -138,6 +139,7 @@ function Profile() {
                             fullWidth
                             id="email"
                             label="Email"
+                            inputProps={{ type: 'email' }}
                             error={Boolean(errors.email)}
                             helperText={
                               errors.email
@@ -147,9 +149,9 @@ function Profile() {
                                 : ''
                             }
                             {...field}
-                          />
+                          ></TextField>
                         )}
-                      />
+                      ></Controller>
                     </ListItem>
                     <ListItem>
                       <Controller
@@ -168,7 +170,7 @@ function Profile() {
                             fullWidth
                             id="password"
                             label="Password"
-                            type="password"
+                            inputProps={{ type: 'password' }}
                             error={Boolean(errors.password)}
                             helperText={
                               errors.password
@@ -176,9 +178,9 @@ function Profile() {
                                 : ''
                             }
                             {...field}
-                          />
+                          ></TextField>
                         )}
-                      />
+                      ></Controller>
                     </ListItem>
                     <ListItem>
                       <Controller
@@ -197,17 +199,17 @@ function Profile() {
                             fullWidth
                             id="confirmPassword"
                             label="Confirm Password"
-                            type="password"
+                            inputProps={{ type: 'password' }}
                             error={Boolean(errors.confirmPassword)}
                             helperText={
-                              errors.confirmPassword
+                              errors.password
                                 ? 'Confirm Password length is more than 5'
                                 : ''
                             }
                             {...field}
-                          />
+                          ></TextField>
                         )}
-                      />
+                      ></Controller>
                     </ListItem>
                     <ListItem>
                       <Button
@@ -220,7 +222,7 @@ function Profile() {
                       </Button>
                     </ListItem>
                   </List>
-                </form>
+                </Form>
               </ListItem>
             </List>
           </Card>

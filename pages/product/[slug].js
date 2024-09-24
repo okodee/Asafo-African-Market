@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import NextLink from 'next/link';
 import Image from 'next/image';
 import {
@@ -11,10 +11,11 @@ import {
   Button,
   TextField,
   CircularProgress,
+  Box,
 } from '@mui/material';
-import { Rating } from '@mui/material';
+import Rating from '@mui/material/Rating';
 import Layout from '../../components/Layout';
-import useStyles from '../../utils/styles';
+import classes from '../../utils/classes';
 import Product from '../../models/Product';
 import db from '../../utils/db';
 import axios from 'axios';
@@ -22,13 +23,14 @@ import { Store } from '../../utils/Store';
 import { getError } from '../../utils/error';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
+import Form from '../../components/Form';
 
 export default function ProductScreen(props) {
   const router = useRouter();
   const { state, dispatch } = useContext(Store);
   const { userInfo } = state;
   const { product } = props;
-  const classes = useStyles();
+
   const { enqueueSnackbar } = useSnackbar();
 
   const [reviews, setReviews] = useState([]);
@@ -36,36 +38,19 @@ export default function ProductScreen(props) {
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const productId = product._id;
-  const userId = userInfo?._id;
-
-  const fetchReviews = useCallback(async () => {
-    if (!productId || !userId) return;
-    try {
-      const { data } = await axios.get(`/api/products/${productId}/reviews`, {
-        headers: { authorization: `Bearer ${userInfo.token}` },
-      });
-      setReviews(data);
-    } catch (err) {
-      enqueueSnackbar(getError(err), { variant: 'error' });
-    }
-  }, [productId, userId, userInfo.token, enqueueSnackbar]);
-
-  useEffect(() => {
-    if (!userInfo) {
-      router.push('/login');
-    }
-    fetchReviews();
-  }, [fetchReviews, userInfo, router]);
-
   const submitHandler = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
       await axios.post(
-        `/api/products/${productId}/reviews`,
-        { rating, comment },
-        { headers: { authorization: `Bearer ${userInfo.token}` } }
+        `/api/products/${product._id}/reviews`,
+        {
+          rating,
+          comment,
+        },
+        {
+          headers: { authorization: `Bearer ${userInfo.token}` },
+        }
       );
       setLoading(false);
       enqueueSnackbar('Review submitted successfully', { variant: 'success' });
@@ -76,6 +61,21 @@ export default function ProductScreen(props) {
     }
   };
 
+  const fetchReviews = async () => {
+    try {
+      const { data } = await axios.get(`/api/products/${product._id}/reviews`);
+      setReviews(data);
+    } catch (err) {
+      enqueueSnackbar(getError(err), { variant: 'error' });
+    }
+  };
+  useEffect(() => {
+    fetchReviews();
+  }, []);
+
+  if (!product) {
+    return <Box>Product Not Found</Box>;
+  }
   const addToCartHandler = async () => {
     const existItem = state.cart.cartItems.find((x) => x._id === product._id);
     const quantity = existItem ? existItem.quantity + 1 : 1;
@@ -88,19 +88,15 @@ export default function ProductScreen(props) {
     router.push('/cart');
   };
 
-  if (!product) {
-    return <div>Product Not Found</div>;
-  }
-
   return (
-    <Layout title={product.name} description={product.description}>
-      <div className={classes.section}>
+    <Layout title={product.name}>
+      <Box sx={classes.section}>
         <NextLink href="/" passHref>
           <Link>
             <Typography>back to products</Typography>
           </Link>
         </NextLink>
-      </div>
+      </Box>
       <Grid container spacing={1}>
         <Grid item md={6} xs={12}>
           <Image
@@ -109,7 +105,7 @@ export default function ProductScreen(props) {
             width={640}
             height={640}
             layout="responsive"
-          />
+          ></Image>
         </Grid>
         <Grid item md={3} xs={12}>
           <List>
@@ -125,13 +121,13 @@ export default function ProductScreen(props) {
               <Typography>Brand: {product.brand}</Typography>
             </ListItem>
             <ListItem>
-              <Rating value={product.rating} readOnly />
+              <Rating value={product.rating} readOnly></Rating>
               <Link href="#reviews">
                 <Typography>({product.numReviews} reviews)</Typography>
               </Link>
             </ListItem>
             <ListItem>
-              <Typography>Description: {product.description}</Typography>
+              <Typography> Description: {product.description}</Typography>
             </ListItem>
           </List>
         </Grid>
@@ -164,7 +160,6 @@ export default function ProductScreen(props) {
                 <Button
                   fullWidth
                   variant="contained"
-                  color="primary"
                   onClick={addToCartHandler}
                 >
                   Add to cart
@@ -180,18 +175,18 @@ export default function ProductScreen(props) {
             Customer Reviews
           </Typography>
         </ListItem>
-        {reviews.length === 0 && <ListItem>No reviews</ListItem>}
+        {reviews.length === 0 && <ListItem>No review</ListItem>}
         {reviews.map((review) => (
           <ListItem key={review._id}>
             <Grid container>
-              <Grid item className={classes.reviewItem}>
+              <Grid item sx={classes.reviewItem}>
                 <Typography>
                   <strong>{review.name}</strong>
                 </Typography>
                 <Typography>{review.createdAt.substring(0, 10)}</Typography>
               </Grid>
               <Grid item>
-                <Rating value={review.rating} readOnly />
+                <Rating value={review.rating} readOnly></Rating>
                 <Typography>{review.comment}</Typography>
               </Grid>
             </Grid>
@@ -199,7 +194,7 @@ export default function ProductScreen(props) {
         ))}
         <ListItem>
           {userInfo ? (
-            <form onSubmit={submitHandler} className={classes.reviewForm}>
+            <Form onSubmit={submitHandler}>
               <List>
                 <ListItem>
                   <Typography variant="h2">Leave your review</Typography>
@@ -219,7 +214,7 @@ export default function ProductScreen(props) {
                   <Rating
                     name="simple-controlled"
                     value={rating}
-                    onChange={(e, newValue) => setRating(newValue)}
+                    onChange={(e) => setRating(e.target.value)}
                   />
                 </ListItem>
                 <ListItem>
@@ -231,10 +226,11 @@ export default function ProductScreen(props) {
                   >
                     Submit
                   </Button>
-                  {loading && <CircularProgress />}
+
+                  {loading && <CircularProgress></CircularProgress>}
                 </ListItem>
               </List>
-            </form>
+            </Form>
           ) : (
             <Typography variant="h2">
               Please{' '}

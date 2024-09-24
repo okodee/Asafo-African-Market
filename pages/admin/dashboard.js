@@ -15,11 +15,30 @@ import {
   CardContent,
   CardActions,
 } from '@mui/material';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { getError } from '../../utils/error';
 import { Store } from '../../utils/Store';
 import Layout from '../../components/Layout';
-import useStyles from '../../utils/styles';
+import classes from '../../utils/classes';
+
+// Register the necessary components with Chart.js
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 function reducer(state, action) {
   switch (action.type) {
@@ -30,14 +49,14 @@ function reducer(state, action) {
     case 'FETCH_FAIL':
       return { ...state, loading: false, error: action.payload };
     default:
-      state;
+      return state;
   }
 }
 
 function AdminDashboard() {
   const { state } = useContext(Store);
   const router = useRouter();
-  const classes = useStyles();
+
   const { userInfo } = state;
 
   const [{ loading, error, summary }, dispatch] = useReducer(reducer, {
@@ -49,9 +68,7 @@ function AdminDashboard() {
   useEffect(() => {
     if (!userInfo) {
       router.push('/login');
-      return; // Early return if no userInfo
     }
-
     const fetchData = async () => {
       try {
         dispatch({ type: 'FETCH_REQUEST' });
@@ -63,17 +80,14 @@ function AdminDashboard() {
         dispatch({ type: 'FETCH_FAIL', payload: getError(err) });
       }
     };
-
     fetchData();
-
-    // Add dependencies to ensure effect runs correctly when they change
-  }, [router, userInfo, dispatch]);
+  }, [userInfo, router]);
 
   return (
     <Layout title="Admin Dashboard">
       <Grid container spacing={1}>
         <Grid item md={3} xs={12}>
-          <Card className={classes.section}>
+          <Card sx={classes.section}>
             <List>
               <NextLink href="/admin/dashboard" passHref>
                 <ListItem selected button component="a">
@@ -99,13 +113,13 @@ function AdminDashboard() {
           </Card>
         </Grid>
         <Grid item md={9} xs={12}>
-          <Card className={classes.section}>
+          <Card sx={classes.section}>
             <List>
               <ListItem>
                 {loading ? (
                   <CircularProgress />
                 ) : error ? (
-                  <Typography className={classes.error}>{error}</Typography>
+                  <Typography sx={classes.error}>{error}</Typography>
                 ) : (
                   <Grid container spacing={5}>
                     <Grid item md={3}>
@@ -197,9 +211,12 @@ function AdminDashboard() {
                     ],
                   }}
                   options={{
-                    legend: { display: true, position: 'right' },
+                    responsive: true,
+                    plugins: {
+                      legend: { display: true, position: 'right' },
+                    },
                   }}
-                ></Bar>
+                />
               </ListItem>
             </List>
           </Card>

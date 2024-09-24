@@ -1,24 +1,16 @@
-// pages/_document.js
-import Document, { Html, Head, Main, NextScript } from 'next/document';
-import { CacheProvider } from '@emotion/react';
-import createCache from '@emotion/cache';
-import { extractCritical } from '@emotion/server';
+import Document, { Head, Html, Main, NextScript } from 'next/document';
 import React from 'react';
-
-// Create an Emotion cache
-const cache = createCache({ key: 'css', prepend: true });
+import createEmotionServer from '@emotion/server/create-instance';
+import createEmotionCache from '../utils/createEmotionCache';
 
 export default class MyDocument extends Document {
   render() {
-    const { css, ids } = this.props;
-
     return (
-      <Html>
+      <Html lang="en">
         <Head>
-          {/* Include any other tags you want here */}
-          <style
-            data-emotion-css={Array.isArray(ids) ? ids.join(' ') : ''}
-            dangerouslySetInnerHTML={{ __html: css || '' }}
+          <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
           />
         </Head>
         <body>
@@ -33,26 +25,36 @@ export default class MyDocument extends Document {
 MyDocument.getInitialProps = async (ctx) => {
   const originalRenderPage = ctx.renderPage;
 
-  // Render page and collect styles
+  // You can consider sharing the same emotion cache between all the SSR requests to speed up performance.
+  // However, be aware that it can have global side effects.
+  const cache = createEmotionCache();
+  const { extractCriticalToChunks } = createEmotionServer(cache);
+
   ctx.renderPage = () =>
     originalRenderPage({
-      enhanceApp: (App) => (props) =>
-        (
-          <CacheProvider value={cache}>
-            <App {...props} />
-          </CacheProvider>
-        ),
+      // eslint-disable-next-line react/display-name
+      enhanceApp: (App) => (props) => <App emotionCache={cache} {...props} />,
     });
 
   const initialProps = await Document.getInitialProps(ctx);
-
-  // Extract critical CSS
-  const page = ctx.renderPage();
-  const { css, ids } = extractCritical(page.html);
+  // This is important. It prevents emotion to render invalid HTML.
+  // See https://github.com/mui-org/material-ui/issues/26561#issuecomment-855286153
+  const emotionStyles = extractCriticalToChunks(initialProps.html);
+  const emotionStyleTags = emotionStyles.styles.map((style) => (
+    <style
+      data-emotion={`${style.key} ${style.ids.join(' ')}`}
+      key={style.key}
+      // eslint-disable-next-line react/no-danger
+      dangerouslySetInnerHTML={{ __html: style.css }}
+    />
+  ));
 
   return {
     ...initialProps,
-    css,
-    ids,
+    // Styles fragment is rendered after the app and page rendering finish.
+    styles: [
+      ...React.Children.toArray(initialProps.styles),
+      ...emotionStyleTags,
+    ],
   };
 };
