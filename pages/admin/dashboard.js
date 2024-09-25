@@ -7,11 +7,10 @@ import {
   CircularProgress,
   Grid,
   List,
-  ListItem,
   Typography,
   Card,
   Button,
-  ListItemText,
+  ListItemButton,
   CardContent,
   CardActions,
 } from '@mui/material';
@@ -30,7 +29,7 @@ import { Store } from '../../utils/Store';
 import Layout from '../../components/Layout';
 import classes from '../../utils/classes';
 
-// Register the necessary components with Chart.js
+// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -53,15 +52,14 @@ function reducer(state, action) {
   }
 }
 
-function AdminDashboard() {
+function AdminDashboard({ initialSummary }) {
   const { state } = useContext(Store);
   const router = useRouter();
-
   const { userInfo } = state;
 
   const [{ loading, error, summary }, dispatch] = useReducer(reducer, {
     loading: true,
-    summary: { salesData: [] },
+    summary: initialSummary,
     error: '',
   });
 
@@ -69,18 +67,6 @@ function AdminDashboard() {
     if (!userInfo) {
       router.push('/login');
     }
-    const fetchData = async () => {
-      try {
-        dispatch({ type: 'FETCH_REQUEST' });
-        const { data } = await axios.get(`/api/admin/summary`, {
-          headers: { authorization: `Bearer ${userInfo.token}` },
-        });
-        dispatch({ type: 'FETCH_SUCCESS', payload: data });
-      } catch (err) {
-        dispatch({ type: 'FETCH_FAIL', payload: getError(err) });
-      }
-    };
-    fetchData();
   }, [userInfo, router]);
 
   return (
@@ -90,24 +76,27 @@ function AdminDashboard() {
           <Card sx={classes.section}>
             <List>
               <NextLink href="/admin/dashboard" passHref>
-                <ListItem selected button component="a">
-                  <ListItemText primary="Admin Dashboard"></ListItemText>
-                </ListItem>
+                <ListItemButton component="a">
+                  <Typography>Admin Dashboard</Typography>
+                </ListItemButton>
               </NextLink>
+
               <NextLink href="/admin/orders" passHref>
-                <ListItem button component="a">
-                  <ListItemText primary="Orders"></ListItemText>
-                </ListItem>
+                <ListItemButton component="a">
+                  <Typography>Orders</Typography>
+                </ListItemButton>
               </NextLink>
+
               <NextLink href="/admin/products" passHref>
-                <ListItem button component="a">
-                  <ListItemText primary="Products"></ListItemText>
-                </ListItem>
+                <ListItemButton component="a">
+                  <Typography>Products</Typography>
+                </ListItemButton>
               </NextLink>
+
               <NextLink href="/admin/users" passHref>
-                <ListItem button component="a">
-                  <ListItemText primary="Users"></ListItemText>
-                </ListItem>
+                <ListItemButton component="a">
+                  <Typography>Users</Typography>
+                </ListItemButton>
               </NextLink>
             </List>
           </Card>
@@ -224,6 +213,43 @@ function AdminDashboard() {
       </Grid>
     </Layout>
   );
+}
+
+// Fetching data on the server
+export async function getServerSideProps(context) {
+  const { req } = context;
+  const userInfo = req.cookies.userInfo
+    ? JSON.parse(req.cookies.userInfo)
+    : null;
+
+  if (!userInfo) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
+
+  try {
+    const { data } = await axios.get(
+      `${process.env.API_URL}/api/admin/summary`,
+      {
+        headers: { authorization: `Bearer ${userInfo.token}` },
+      }
+    );
+
+    return {
+      props: { initialSummary: data }, // Pass initial summary to the component
+    };
+  } catch (error) {
+    return {
+      props: {
+        initialSummary: { salesData: [] },
+        error: 'Error fetching data',
+      }, // Handle error case
+    };
+  }
 }
 
 export default dynamic(() => Promise.resolve(AdminDashboard), { ssr: false });
