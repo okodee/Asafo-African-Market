@@ -7,37 +7,19 @@ import {
   CircularProgress,
   Grid,
   List,
+  ListItem,
   Typography,
   Card,
   Button,
-  ListItemButton,
+  ListItemText,
   CardContent,
   CardActions,
 } from '@mui/material';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { getError } from '../../utils/error';
 import { Store } from '../../utils/Store';
 import Layout from '../../components/Layout';
 import classes from '../../utils/classes';
-
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
 
 function reducer(state, action) {
   switch (action.type) {
@@ -48,18 +30,19 @@ function reducer(state, action) {
     case 'FETCH_FAIL':
       return { ...state, loading: false, error: action.payload };
     default:
-      return state;
+      state;
   }
 }
 
-function AdminDashboard({ initialSummary }) {
+function AdminDashboard() {
   const { state } = useContext(Store);
   const router = useRouter();
+
   const { userInfo } = state;
 
   const [{ loading, error, summary }, dispatch] = useReducer(reducer, {
     loading: true,
-    summary: initialSummary,
+    summary: { salesData: [] },
     error: '',
   });
 
@@ -67,8 +50,19 @@ function AdminDashboard({ initialSummary }) {
     if (!userInfo) {
       router.push('/login');
     }
-  }, [userInfo, router]);
-
+    const fetchData = async () => {
+      try {
+        dispatch({ type: 'FETCH_REQUEST' });
+        const { data } = await axios.get(`/api/admin/summary`, {
+          headers: { authorization: `Bearer ${userInfo.token}` },
+        });
+        dispatch({ type: 'FETCH_SUCCESS', payload: data });
+      } catch (err) {
+        dispatch({ type: 'FETCH_FAIL', payload: getError(err) });
+      }
+    };
+    fetchData();
+  }, []);
   return (
     <Layout title="Admin Dashboard">
       <Grid container spacing={1}>
@@ -76,27 +70,24 @@ function AdminDashboard({ initialSummary }) {
           <Card sx={classes.section}>
             <List>
               <NextLink href="/admin/dashboard" passHref>
-                <ListItemButton component="a">
-                  <Typography>Admin Dashboard</Typography>
-                </ListItemButton>
+                <ListItem selected button component="a">
+                  <ListItemText primary="Admin Dashboard"></ListItemText>
+                </ListItem>
               </NextLink>
-
               <NextLink href="/admin/orders" passHref>
-                <ListItemButton component="a">
-                  <Typography>Orders</Typography>
-                </ListItemButton>
+                <ListItem button component="a">
+                  <ListItemText primary="Orders"></ListItemText>
+                </ListItem>
               </NextLink>
-
               <NextLink href="/admin/products" passHref>
-                <ListItemButton component="a">
-                  <Typography>Products</Typography>
-                </ListItemButton>
+                <ListItem button component="a">
+                  <ListItemText primary="Products"></ListItemText>
+                </ListItem>
               </NextLink>
-
               <NextLink href="/admin/users" passHref>
-                <ListItemButton component="a">
-                  <Typography>Users</Typography>
-                </ListItemButton>
+                <ListItem button component="a">
+                  <ListItemText primary="Users"></ListItemText>
+                </ListItem>
               </NextLink>
             </List>
           </Card>
@@ -200,12 +191,9 @@ function AdminDashboard({ initialSummary }) {
                     ],
                   }}
                   options={{
-                    responsive: true,
-                    plugins: {
-                      legend: { display: true, position: 'right' },
-                    },
+                    legend: { display: true, position: 'right' },
                   }}
-                />
+                ></Bar>
               </ListItem>
             </List>
           </Card>
@@ -213,43 +201,6 @@ function AdminDashboard({ initialSummary }) {
       </Grid>
     </Layout>
   );
-}
-
-// Fetching data on the server
-export async function getServerSideProps(context) {
-  const { req } = context;
-  const userInfo = req.cookies.userInfo
-    ? JSON.parse(req.cookies.userInfo)
-    : null;
-
-  if (!userInfo) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
-  }
-
-  try {
-    const { data } = await axios.get(
-      `${process.env.API_URL}/api/admin/summary`,
-      {
-        headers: { authorization: `Bearer ${userInfo.token}` },
-      }
-    );
-
-    return {
-      props: { initialSummary: data }, // Pass initial summary to the component
-    };
-  } catch (error) {
-    return {
-      props: {
-        initialSummary: { salesData: [] },
-        error: 'Error fetching data',
-      }, // Handle error case
-    };
-  }
 }
 
 export default dynamic(() => Promise.resolve(AdminDashboard), { ssr: false });
